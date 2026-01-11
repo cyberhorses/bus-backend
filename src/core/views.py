@@ -74,8 +74,8 @@ def login(request: HttpRequest):
     response = JsonResponse({"message": "success"})
 
     # TODO secure=True
-    response.set_cookie("access_token", jwt, httponly=True, samesite="Lax")
-    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax", path="/api/session/manage/")
+    response.set_cookie("access_token", jwt, httponly=True, samesite="Lax", secure=True)
+    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax", path="/api/session/manage/", secure=True)
 
     return response
 
@@ -119,8 +119,8 @@ def refresh_session(request: HttpRequest) -> JsonResponse:
         ref_token = create_refresh_token(user.username)
 
         response = JsonResponse({"message": "success"})
-        response.set_cookie("access_token", acc_token, httponly=True, samesite="Lax")
-        response.set_cookie("refresh_token", ref_token, httponly=True, samesite="Lax", path="/api/session/manage/")
+        response.set_cookie("access_token", acc_token, httponly=True, samesite="Lax", secure=True)
+        response.set_cookie("refresh_token", ref_token, httponly=True, samesite="Lax", path="/api/session/manage/", secure=True)
         return response
     elif ref_token is None:
         return JsonResponse({"message": "Unauthorized"}, status=401)
