@@ -12,3 +12,14 @@ class User(models.Model):
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ("id", "username", "created_at")
+
+class RefreshToken(models.Model):
+    jti = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id", related_name="refresh_tokens")
+    issued_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+@admin.register(RefreshToken)
+class RefreshTokenAdmin(admin.ModelAdmin):
+    list_display = ("jti", "user", "issued_at", "revoked_at")
