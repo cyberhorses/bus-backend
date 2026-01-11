@@ -41,7 +41,6 @@ def validate_jwt(token: str) -> bool:
     if user is None:
         return False
 
-    print(user.token_version)
     claims_requests = JWTClaimsRegistry(
         iss={"essential": True, "value": settings.JWT_ISSUER},
         tkv={"essential": True, "value": str(user.token_version)}
@@ -67,7 +66,7 @@ def create_refresh_token(username: str) -> str:
     now = datetime.now(tz=timezone.utc)
     exp = now + timedelta(minutes=settings.JWT_REFRESH_EXP_MINUTES)
 
-    RefreshToken.objects.create(
+    token = RefreshToken.objects.create(
         user=user,
         issued_at=now,
         expires_at=exp,
@@ -77,6 +76,7 @@ def create_refresh_token(username: str) -> str:
     claims = {
         "iss": settings.JWT_ISSUER,
         "sub": str(user.id),
+        "jti": str(token.jti),
         "iat": now,
         "exp": exp,
     }
@@ -93,7 +93,10 @@ def create_refresh_token(username: str) -> str:
 
 def decode_token_jti(token: str) -> str:
     token_decoded = jwt.decode(token, key)
-    return token_decoded.claims["jti"]
+    jti = token_decoded.claims["jti"]
+    if not jti:
+        raise ValueError("JWT not found in database")
+    return str(jti)
 
 
 def expire_refresh_token(token: str):
@@ -108,7 +111,6 @@ def validate_refresh_jwt(token: str) -> bool:
     if token_db is None or token_db.revoked_at is not None:
         return False
 
-    print(token_db.token_version)
     claims_requests = JWTClaimsRegistry(
         iss={"essential": True, "value": settings.JWT_ISSUER},
     )

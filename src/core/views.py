@@ -103,8 +103,7 @@ def register(request: HttpRequest):
 
     return JsonResponse({"message": "success"})
 
-
-def refresh_session(request: HttpRequest):
+def refresh_session(request: HttpRequest) -> JsonResponse:
     """
     GET /session/manage/refresh
     Cookie: refresh_token=...
@@ -113,13 +112,17 @@ def refresh_session(request: HttpRequest):
     if ref_token is not None and validate_refresh_jwt(ref_token):
         expire_refresh_token(ref_token)
 
-        user_uuid = get_user_from_refresh_token(ref_token)
-        username = str(get_user_by_uuid(user_uuid).username)
-        acc_token = create_access_token(username)
-        ref_token = create_refresh_token(username)
+        user = get_user_from_refresh_token(ref_token)
+        if not user:
+            raise ValueError("User not found")
+        acc_token = create_access_token(user.username)
+        ref_token = create_refresh_token(user.username)
 
         response = JsonResponse({"message": "success"})
         response.set_cookie("access_token", acc_token, httponly=True, samesite="Lax")
         response.set_cookie("refresh_token", ref_token, httponly=True, samesite="Lax", path="/api/session/manage/")
         return response
-    return JsonResponse({"message": "Invalid refresh token"}, status=401)
+    elif ref_token is None:
+        return JsonResponse({"message": "Unauthorized"}, status=401)
+    else:
+        return JsonResponse({"message": "Forbidden"}, status=403)
