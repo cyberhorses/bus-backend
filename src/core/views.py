@@ -122,3 +122,4 @@ def refresh_session(request: HttpRequest):
         response.set_cookie("access_token", acc_token, httponly=True, samesite="Lax")
         response.set_cookie("refresh_token", ref_token, httponly=True, samesite="Lax", path="/api/session/manage/")
         return response
+    return JsonResponse({"message": "Invalid refresh token"}, status=401)
