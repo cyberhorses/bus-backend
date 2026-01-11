@@ -30,7 +30,7 @@ def validate_session(request: HttpRequest) -> JsonResponse:
     if token is not None and validate_jwt(token):
         return JsonResponse({"message": "success"})
 
-    return JsonResponse({"error": "Session expired" if token else "Invalid session"}, status=403)
+    return JsonResponse({"error": "Session expired" if token else "Invalid session"}, status=401)
 
 
 def logout(request: HttpRequest) -> JsonResponse:
