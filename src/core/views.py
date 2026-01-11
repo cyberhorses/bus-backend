@@ -3,13 +3,23 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpRequest
 from django.views.decorators.http import require_POST
 from core.services.auth_service import verify_user_credentials, create_user
-from core.services.jwt import create_access_token, validate_jwt, decode_user_uuid, create_refresh_token, validate_refresh_jwt, expire_refresh_token, get_user_from_refresh_token
+from core.services.jwt import (
+    create_access_token,
+    validate_jwt,
+    decode_user_uuid,
+    create_refresh_token,
+    validate_refresh_jwt,
+    expire_refresh_token,
+    get_user_from_refresh_token,
+)
 from core.services.helpers import increment_token_version, get_user_by_uuid
 from django.views.decorators.csrf import csrf_exempt
 import uuid
 
+
 def health_check(request: HttpRequest) -> JsonResponse:
     return JsonResponse({"status": "ok"})
+
 
 def validate_session(request: HttpRequest) -> JsonResponse:
     """
@@ -20,7 +30,8 @@ def validate_session(request: HttpRequest) -> JsonResponse:
     if token is not None and validate_jwt(token):
         return JsonResponse({"message": "success"})
 
-    return JsonResponse({"error": "Invalid session"}, status=403)
+    return JsonResponse({"error": "Session expired" if token else "Invalid session"}, status=403)
+
 
 def logout(request: HttpRequest) -> JsonResponse:
     """
@@ -37,6 +48,7 @@ def logout(request: HttpRequest) -> JsonResponse:
         return JsonResponse({"message": "success"})
 
     return JsonResponse({"error": "Invalid session"}, status=403)
+
 
 @csrf_exempt  # TODO
 @require_POST
@@ -67,6 +79,7 @@ def login(request: HttpRequest):
 
     return response
 
+
 @csrf_exempt  # TODO
 @require_POST
 def register(request: HttpRequest):
@@ -90,6 +103,7 @@ def register(request: HttpRequest):
 
     return JsonResponse({"message": "success"})
 
+
 def refresh_session(request: HttpRequest):
     """
     GET /session/manage/refresh
@@ -108,5 +122,3 @@ def refresh_session(request: HttpRequest):
         response.set_cookie("access_token", acc_token, httponly=True, samesite="Lax")
         response.set_cookie("refresh_token", ref_token, httponly=True, samesite="Lax", path="/api/session/manage/")
         return response
-
-
