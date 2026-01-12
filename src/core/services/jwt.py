@@ -36,7 +36,11 @@ def create_access_token(username: str) -> str:
     return token
 
 def validate_jwt(token: str) -> bool:
-    token_decoded = jwt.decode(token, key)
+    try:
+        token_decoded = jwt.decode(token, key)
+    except JoseError:
+        return False
+
     user = get_user_by_uuid(token_decoded.claims["sub"])
     if user is None:
         return False
