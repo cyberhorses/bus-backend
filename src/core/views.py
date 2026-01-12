@@ -259,7 +259,7 @@ def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonRespons
         return JsonResponse({"error": "missing field(s)"}, status=400)
 
     # 5. Modify the permissions
-    if ["read", "upload", "delete"] in perms.keys():
+    if set(["read", "upload", "delete"]).issubset(perms.keys()):
         user_to_modify = get_user(username)
         if not user_to_modify:
             return JsonResponse({"error": "user not found"}, status=404)
