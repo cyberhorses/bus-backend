@@ -7,6 +7,9 @@ from django.views.decorators.http import require_POST
 from azure.identity import ManagedIdentityCredential
 from azure.storage.blob import BlobServiceClient
 from django.http import StreamingHttpResponse, Http404
+from core.services.jwt import validate_jwt, decode_user_uuid
+from core.services.helpers import get_folder_by_uuid, get_user_folder_permissions, get_user_by_uuid, get_file_by_uuid
+from core.models import File
 
 
 # Configure once
@@ -20,17 +23,36 @@ blob_service_client = BlobServiceClient(account_url=BLOB_ACCOUNT_URL, credential
 @csrf_exempt
 @require_POST
 def upload_file(request):
-    file = request.FILES.get("file")
-    if not file:
-        return JsonResponse({"error": "No file uploaded"}, status=400)
+    # 1. Check user's JWT token
+    token = request.COOKIES.get("access_token")
+    if not token or validate_jwt(token):
+        return JsonResponse({"error": "Unauthorized"}, status=401)
 
+    # 2. Get file data
+    file = request.FILES.get("file")
+    dir = request.FILES.get("dir")
+    if not file or not dir:
+        return JsonResponse({"error": "No file uploaded"}, status=400)
     if file.size > getattr(settings, "MAX_UPLOAD_SIZE", 50 * 1024 * 1024):
         return JsonResponse({"error": "File too large"}, status=400)
 
-    # Generate unique blob name
-    blob_name = f"{uuid.uuid4()}_{file.name}"
+    # 3. Check if user has dir access
+    folder = get_folder_by_uuid(dir)
+    user = get_user_by_uuid(decode_user_uuid(token))
+    if not folder or not user:
+        return JsonResponse({"error": "Forbidden"}, status=403)
 
-    # Upload to Azure Blob Storage streaming
+    if "upload" not in get_user_folder_permissions(folder, user):
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    
+
+    file = File.objects.create(
+            name=file.name,
+            folder=folder,
+            size = file.size
+        )
+    blob_name = f"{file.id}_{file.name}"
+
     blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=blob_name)
     blob_client.upload_blob(file.file, overwrite=True, content_type=file.content_type)
 
@@ -44,12 +66,32 @@ def upload_file(request):
 @csrf_exempt
 @require_POST
 def download_file(request):
+    # 1. Check user's JWT token
+    token = request.COOKIES.get("access_token")
+    if not token or validate_jwt(token):
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    # 2. Get file details
     data = json.loads(request.body)
-    filename = data["filename"]
+    file_id = data["file_id"]
+
+    # 3. Get file and user
+    file = get_file_by_uuid(file_id)
+    user = get_user_by_uuid(decode_user_uuid(token))
+    if not file or not user:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    # 4. Check user's read permissions
+    if "read" not in get_user_folder_permissions(file.folder, user):
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    filename = f"{file.id}_{file.name}"
+
+    # 5. Download the file
     blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=filename)
 
     if not blob_client.exists():
-        raise Http404("File not found")
+        return JsonResponse({"error": "file not found"}, status=500)
 
     stream = blob_client.download_blob()
 

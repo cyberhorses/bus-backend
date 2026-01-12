@@ -126,3 +126,4 @@ def get_user_from_refresh_token(token: str):
     jti = decode_token_jti(token)
     token_db = RefreshToken.objects.filter(jti=jti).first()
     return token_db.user if token_db else None
+

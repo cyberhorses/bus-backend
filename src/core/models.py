@@ -55,7 +55,7 @@ class FileAdmin(admin.ModelAdmin):
 class FolderPermission(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     folder = models.ForeignKey(
-        Folder, on_delete=models.CASCADE, db_column="folder_id", related_name="folder_pormissions"
+        Folder, on_delete=models.CASCADE, db_column="folder_id", related_name="folder_permissions"
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id", related_name="folder_permissions")
     can_read = models.BooleanField(default=False)
