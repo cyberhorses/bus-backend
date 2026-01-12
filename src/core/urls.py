@@ -11,6 +11,6 @@ urlpatterns = [
     path("session/manage/refresh", views.refresh_session),
     path("session/validate", views.validate_session),
     path("file/upload", blob_views.upload_file),
-    path("file/download", blob_views.download_file)
+    path("file/download", blob_views.download_file),
     path("folders/contents/<uuid:folder_uuid>", views.get_files)
 ]
