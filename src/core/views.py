@@ -152,10 +152,8 @@ def folders(request: HttpRequest) -> JsonResponse:
     """
     token = request.COOKIES.get("access_token")
 
-    if token is None:
+    if token is None or not validate_jwt(token):
         return JsonResponse({"error": "Unauthorized"}, status=401)
-    elif not validate_jwt(token):
-        return JsonResponse({"error": "Forbidden"}, status=403)
 
     user_id = decode_user_uuid(token)
 
