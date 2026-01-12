@@ -1,10 +1,13 @@
 import uuid
+import json
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from azure.identity import ManagedIdentityCredential
 from azure.storage.blob import BlobServiceClient
+from django.http import StreamingHttpResponse, Http404
+
 
 # Configure once
 BLOB_ACCOUNT_URL = "https://busblobstorage.blob.core.windows.net"
@@ -36,4 +39,25 @@ def upload_file(request):
         "original_name": file.name,
         "size": file.size
     })
+
+
+@csrf_exempt
+@require_POST
+def download_file(request):
+    data = json.loads(request.body)
+    filename = data["filename"]
+    blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=filename)
+
+    if not blob_client.exists():
+        raise Http404("File not found")
+
+    stream = blob_client.download_blob()
+
+    response = StreamingHttpResponse(
+        stream.chunks(),  # stream chunks from Azure
+        content_type="application/octet-stream"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    return response
 
