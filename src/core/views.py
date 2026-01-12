@@ -13,7 +13,7 @@ from core.services.jwt import (
     get_user_from_refresh_token,
 )
 from core.services.folders_operations import create_folder_for_user, get_available_folders
-from core.services.helpers import increment_token_version, get_user_by_uuid, get_folder_by_uuid, get_user_folder_permissions
+from core.services.helpers import increment_token_version, get_user_by_uuid, get_folder_by_uuid, get_user_folder_permissions, get_files_in_folder
 from django.views.decorators.csrf import csrf_exempt
 import uuid
 from django.core.exceptions import ValidationError
