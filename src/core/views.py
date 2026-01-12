@@ -226,14 +226,8 @@ def get_files(request: HttpRequest, folder_id: str):
 
 
 @csrf_exempt
-@require_POST
-def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonResponse:
-    """
-    POST /folder/<uuid>/permissions
-    Cookie: access-token
-
-    {"read": true, "write": false, "delete": true}
-    """
+@require_http_methods(["GET", "POST"])
+def permissions(request: HttpRequest, folder_id: str) -> JsonResponse:
     # 1. Check user's JWT token
     token = request.COOKIES.get("access_token")
     if not token or not validate_jwt(token):
@@ -246,6 +240,28 @@ def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonRespons
         # return 403 to prevent resource enumeration
         return JsonResponse({"error": "Forbidden"}, status=403)
 
+    operation = get_user_permissions if request.method == "GET" else modify_user_permissions
+    operation(request=request, folder=folder, user=user)
+
+
+def get_user_permissions(**kwargs) -> JsonResponse:
+    perms = get_user_folder_permissions(kwargs["user"], kwargs["folder"])
+    return JsonResponse({
+            "read": True if "read" in perms else False,
+            "upload": True if "upload" in perms else False,
+            "delete": True if "delete" in perms else False
+        })
+
+
+def modify_user_permissions(**kwargs) -> JsonResponse:
+    """
+    POST /folder/<uuid>/permissions
+    Cookie: access-token
+
+    {"read": true, "write": false, "delete": true}
+    """
+    folder, user, request = kwargs["folder"], kwargs["user"], kwargs["request"]
+
     # 3. Check user's owner permissions for the folder
     if user.id != folder.owner.id:
         return JsonResponse({"error": "Forbidden"}, status=403)
@@ -257,6 +273,9 @@ def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonRespons
         perms = data["perms"]
     except KeyError:
         return JsonResponse({"error": "missing field(s)"}, status=400)
+
+    if username == user.username:
+        return JsonResponse({"error": "cannot change your own permissions"}, status=400)
 
     # 5. Modify the permissions
     if set(["read", "upload", "delete"]).issubset(perms.keys()):
