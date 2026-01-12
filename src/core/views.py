@@ -249,7 +249,7 @@ def get_user_permissions(**kwargs) -> JsonResponse:
     return JsonResponse({
             "read": True if "read" in perms else False,
             "upload": True if "upload" in perms else False,
-            "delete": True if "delete" in perms else False
+            "delete": True if "delete" in perms else False,
             "is_owner": True if kwargs["user"].id == kwargs["folder"].id else False
         })
 
