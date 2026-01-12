@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from joserfc import jwt
 from joserfc.jwk import OctKey
 from joserfc.jwt import JWTClaimsRegistry
-from joserfc.errors import ClaimError
+from joserfc.errors import JoseError
 from django.conf import settings
 from core.models import RefreshToken
 from core.services.helpers import get_user, get_user_by_uuid
@@ -48,7 +48,7 @@ def validate_jwt(token: str) -> bool:
 
     try:
         claims_requests.validate(token_decoded.claims)
-    except Exception:
+    except JoseError:
         return False
     return True
 
@@ -116,8 +116,7 @@ def validate_refresh_jwt(token: str) -> bool:
 
     try:
         claims_requests.validate(token_decoded.claims)
-    except ClaimError as error:
-        print(error.claim, error.error, error.description)
+    except JoseError:
         return False
     return True
 
