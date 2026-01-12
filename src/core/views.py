@@ -247,7 +247,7 @@ def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonRespons
         return JsonResponse({"error": "Forbidden"}, status=403)
 
     # 3. Check user's owner permissions for the folder
-    if user.id == folder.owner.id:
+    if user.id != folder.owner.id:
         return JsonResponse({"error": "Forbidden"}, status=403)
 
     # 4. Get the user
