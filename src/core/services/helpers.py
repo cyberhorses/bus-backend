@@ -48,8 +48,8 @@ def modify_permissions(folder: Folder, user: User, perms_new: dict):
     if not perms:
         perms = FolderPermission.objects.create(folder=folder, user=user)
     
-    perms.update(
-            can_read=perms_new["read"],
-            can_upload=perms_new["upload"],
-            can_delete=perms_new["delete"]
-        )
+    perms.can_read = perms_new["read"],
+    perms.can_upload = perms_new["upload"],
+    perms.can_delete = perms_new["delete"]
+
+    perms.save()
