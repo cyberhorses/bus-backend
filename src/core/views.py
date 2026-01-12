@@ -13,7 +13,7 @@ from core.services.jwt import (
     get_user_from_refresh_token,
 )
 from core.services.folders_operations import create_folder_for_user, get_available_folders
-from core.services.helpers import increment_token_version, get_user_by_uuid
+from core.services.helpers import increment_token_version, get_user_by_uuid, get_folder_by_uuid, get_user_folder_permissions
 from django.views.decorators.csrf import csrf_exempt
 import uuid
 from django.core.exceptions import ValidationError
@@ -191,3 +191,39 @@ def _handle_post_folders(user_id: str, request: HttpRequest):
         return JsonResponse({"error": "Invalid request"}, status=400)
 
     return JsonResponse({"message": "Folder successfully created", "folder_id": folder.id}, status=201)
+
+def get_files(request: HttpRequest, folder_id: str):
+    # 1. Check user's JWT token
+    token = request.COOKIES.get("access_token")
+    if not token or not validate_jwt(token):
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    # 2. Check if folder exists
+    folder = get_folder_by_uuid(folder_id)
+    user = get_user_by_uuid(decode_user_uuid(token))
+    if not folder or not user:
+        # return 403 to prevent resource enumeration
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    # 3. Check user's permissions for the folder
+    perms = get_user_folder_permissions(folder, user)
+    if "read" not in perms:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    # 4. Get pagination details
+    page_size = int(request.GET.get("pageSize", 5))
+    page = int(request.GET.get("page", 1))
+
+    # 5. Get file details
+    files = get_files_in_folder(folder)
+
+    paginator = Paginator(files, page_size)
+
+    try:
+        page = paginator.page(page)
+    except EmptyPage:
+        return JsonResponse({"message": "no files"})
+
+    return JsonResponse({"items": page.object_list, "page": page.number, "totalPages": paginator.num_pages})
+    
+

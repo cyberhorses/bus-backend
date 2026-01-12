@@ -1,4 +1,3 @@
-import uuid
 import json
 from django.conf import settings
 from django.http import JsonResponse
@@ -12,17 +11,24 @@ from core.services.helpers import get_folder_by_uuid, get_user_folder_permission
 from core.models import File
 
 
-# Configure once
-BLOB_ACCOUNT_URL = "https://busblobstorage.blob.core.windows.net"
-BLOB_CONTAINER_NAME = "data"
-
 credential = ManagedIdentityCredential()  # Or User Assigned MI
-blob_service_client = BlobServiceClient(account_url=BLOB_ACCOUNT_URL, credential=credential)
+blob_service_client = BlobServiceClient(account_url=settings.BLOB_ACCOUNT_URL, credential=credential)
 
 
 @csrf_exempt
 @require_POST
 def upload_file(request):
+    """
+    POST /file/upload
+    Cookie: acces_token=...
+    Content-type: multipart/form-data
+
+    -------
+    file
+    -------
+    dir
+    -------
+    """
     # 1. Check user's JWT token
     token = request.COOKIES.get("access_token")
     if not token or not validate_jwt(token):
@@ -53,7 +59,7 @@ def upload_file(request):
         )
     blob_name = f"{file_db.id}_{file_db.name}"
 
-    blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=blob_name)
+    blob_client = blob_service_client.get_blob_client(container=settings.BLOB_CONTAINER_NAME, blob=blob_name)
     blob_client.upload_blob(file.file, overwrite=True, content_type=file.content_type)
 
     return JsonResponse({
@@ -88,7 +94,7 @@ def download_file(request):
     filename = f"{file.id}_{file.name}"
 
     # 5. Download the file
-    blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=filename)
+    blob_client = blob_service_client.get_blob_client(container=settings.BLOB_CONTAINER_NAME, blob=filename)
 
     if not blob_client.exists():
         return JsonResponse({"error": "file not found"}, status=500)

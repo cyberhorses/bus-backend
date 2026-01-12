@@ -36,3 +36,16 @@ def get_user_folder_permissions(folder: Folder, user: User) -> list[str]:
 def get_file_by_uuid(id: str) -> Optional[File]:
     file = File.objects.filter(id=id).first()
     return file if file else None
+
+
+def get_files_in_folder(folder: Folder) -> list:
+    files = (File.objects.filter(folder=folder).order_by("name"))
+        folders = [
+        {
+            "id": str(file.id),
+            "name": str(file.name),
+        }
+        for file in files
+    ]
+    return files
+

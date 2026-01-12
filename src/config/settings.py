@@ -136,3 +136,7 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ISSUER = os.getenv("JWT_ISSUER")
 JWT_EXP_MINUTES = 3
 JWT_REFRESH_EXP_MINUTES = 15
+
+BLOB_ACCOUNT_URL = "https://busblobstorage.blob.core.windows.net"
+BLOB_CONTAINER_NAME = "data"
+
