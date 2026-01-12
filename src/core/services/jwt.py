@@ -48,7 +48,7 @@ def validate_jwt(token: str) -> bool:
 
     try:
         claims_requests.validate(token_decoded.claims)
-    except ClaimError as error:
+    except Exception:
         return False
     return True
 
