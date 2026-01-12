@@ -8,7 +8,7 @@ from azure.storage.blob import BlobServiceClient
 
 # Configure once
 BLOB_ACCOUNT_URL = "https://busblobstorage.blob.core.windows.net"
-BLOB_CONTAINER_NAME = "uploads"
+BLOB_CONTAINER_NAME = "data"
 
 credential = ManagedIdentityCredential()  # Or User Assigned MI
 blob_service_client = BlobServiceClient(account_url=BLOB_ACCOUNT_URL, credential=credential)
