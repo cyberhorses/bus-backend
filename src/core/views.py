@@ -245,7 +245,7 @@ def permissions(request: HttpRequest, folder_id: str) -> JsonResponse:
 
 
 def get_user_permissions(**kwargs) -> JsonResponse:
-    perms = get_user_folder_permissions(kwargs["user"], kwargs["folder"])
+    perms = get_user_folder_permissions(kwargs["folder"], kwargs["user"])
     return JsonResponse({
             "read": True if "read" in perms else False,
             "upload": True if "upload" in perms else False,
