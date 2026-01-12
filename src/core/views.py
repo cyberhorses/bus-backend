@@ -33,7 +33,9 @@ def validate_session(request: HttpRequest) -> JsonResponse:
     """
     token = request.COOKIES.get("access_token")
     if token is not None and validate_jwt(token):
-        return JsonResponse({"message": "success"})
+        user_id = decode_user_uuid(token)
+        user = get_user_by_uuid(user_id)
+        return JsonResponse({"message": "success", "username": user.username})
 
     return JsonResponse({"error": "Session expired" if token else "Invalid session"}, status=401)
 
