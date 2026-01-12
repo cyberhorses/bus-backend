@@ -113,7 +113,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 ALLOWED_MIME_TYPES = [
-        "application/pdf"
+        "application/pdf",
+        "text/plain"
     ]
 
 
