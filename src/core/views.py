@@ -12,11 +12,12 @@ from core.services.jwt import (
     expire_refresh_token,
     get_user_from_refresh_token,
 )
-from core.services.folders_operations import create_folder_for_user
+from core.services.folders_operations import create_folder_for_user, get_available_folders
 from core.services.helpers import increment_token_version, get_user_by_uuid
 from django.views.decorators.csrf import csrf_exempt
 import uuid
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator, EmptyPage
 
 
 @require_GET
@@ -140,7 +141,7 @@ def refresh_session(request: HttpRequest) -> JsonResponse:
 
 
 @csrf_exempt
-@require_POST
+@require_http_methods(["GET", "POST"])
 def folders(request: HttpRequest) -> JsonResponse:
     """
     POST /register
@@ -155,6 +156,29 @@ def folders(request: HttpRequest) -> JsonResponse:
         return JsonResponse({"error": "Forbidden"}, status=403)
 
     user_id = decode_user_uuid(token)
+
+    if request.method == "GET":
+        return _handle_get_folders(user_id, request)
+    else:
+        return _handle_post_folders(user_id, request)
+
+
+def _handle_get_folders(user_id: str, request: HttpRequest):
+    page_size = int(request.GET.get("pageSize", 5))
+    page = int(request.GET.get("page", 1))
+    folders = get_available_folders(user_id)
+
+    paginator = Paginator(folders, page_size)
+
+    try:
+        page = paginator.page(page)
+    except EmptyPage:
+        return JsonResponse({"error": "Invalid pagination data"}, status=400)
+
+    return JsonResponse({"items": page.object_list, "page": page.number, "totalPages": paginator.num_pages})
+
+
+def _handle_post_folders(user_id: str, request: HttpRequest):
     try:
         folder_name = json.loads(request.body)["name"]
 

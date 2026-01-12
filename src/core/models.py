@@ -58,11 +58,11 @@ class FolderPermission(models.Model):
         Folder, on_delete=models.CASCADE, db_column="folder_id", related_name="folder_pormissions"
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id", related_name="folder_permissions")
-    read = models.BooleanField(default=False)
-    upload = models.BooleanField(default=False)
-    delete = models.BooleanField(default=False)
+    can_read = models.BooleanField(default=False)
+    can_upload = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
 
 
 @admin.register(FolderPermission)
 class FolderPermissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "folder", "user", "read", "upload", "delete")
+    list_display = ("id", "folder", "user", "can_read", "can_upload", "can_delete")

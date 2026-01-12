@@ -8,7 +8,7 @@ def create_folder_for_user(name: str, owner_id: str) -> Folder:
 
     owner = User.objects.filter(id=owner_id).first()
     if not owner:
-        raise ValidationError("User with the given owner_id does not exist. ???? should never happen")
+        raise ValidationError("Invalid user ???? should never happen")
 
     if Folder.objects.filter(name=name, owner=owner).exists():
         raise ValidationError("A folder with this name already exists for this user.")
@@ -17,3 +17,23 @@ def create_folder_for_user(name: str, owner_id: str) -> Folder:
     FolderPermission.objects.create(folder=folder, user=owner, read=True, upload=True, delete=True)
 
     return folder
+
+
+def get_available_folders(user_id: str):
+    permissions = FolderPermission.objects.filter(user_id=user_id).select_related("folder__owner")
+
+    folders = [
+        {
+            "id": str(permission.folder.id),
+            "owner_username": permission.folder.owner.username,
+            "name": permission.folder.name,
+            "permissions": {
+                "read": permission.can_read,
+                "upload": permission.can_upload,
+                "delete": permission.can_delete,
+            },
+        }
+        for permission in permissions
+    ]
+
+    return folders
