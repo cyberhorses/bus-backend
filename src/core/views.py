@@ -225,6 +225,7 @@ def get_files(request: HttpRequest, folder_id: str):
     return JsonResponse({"items": page.object_list, "page": page.number, "totalPages": paginator.num_pages})
 
 
+@csrf_exempt
 @require_POST
 def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonResponse:
     """
