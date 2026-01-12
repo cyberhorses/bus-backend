@@ -25,12 +25,12 @@ blob_service_client = BlobServiceClient(account_url=BLOB_ACCOUNT_URL, credential
 def upload_file(request):
     # 1. Check user's JWT token
     token = request.COOKIES.get("access_token")
-    if not token or validate_jwt(token):
+    if not token or not validate_jwt(token):
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
     # 2. Get file data
     file = request.FILES.get("file")
-    dir = request.FILES.get("dir")
+    dir = request.POST.get("dir")
     if not file or not dir:
         return JsonResponse({"error": "No file uploaded"}, status=400)
     if file.size > getattr(settings, "MAX_UPLOAD_SIZE", 50 * 1024 * 1024):
