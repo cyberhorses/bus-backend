@@ -93,7 +93,7 @@ def get_delete_file(request: HttpRequest, file_id: str):
     blob_client = blob_service_client.get_blob_client(container=settings.BLOB_CONTAINER_NAME, blob=filename)
 
     if not blob_client.exists():
-        return JsonResponse({"error": "file not found"}, status=500)
+        return JsonResponse({"error": f"file {filename} not found"}, status=500)
 
     # 4. Perform the operation
     return func(blob_client=blob_client, filename=filename, file=file)
