@@ -43,3 +43,13 @@ def get_files_in_folder(folder: Folder) -> list:
     files_list = [{ "id": str(file.id), "name": str(file.name), } for file in files]
     return files_list
 
+def modify_permissions(folder: Folder, user: User, perms_new: dict):
+    perms = FolderPermission.objects.filter(folder=folder, user=user).first()
+    if not perms:
+        perms = FolderPermission.objects.create(folder=folder, user=user)
+    
+    perms.modify(
+            can_read=perms_new["read"],
+            can_upload=perms_new["upload"],
+            can_delete=perms_new["delete"]
+        )

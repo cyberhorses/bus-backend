@@ -13,7 +13,7 @@ from core.services.jwt import (
     get_user_from_refresh_token,
 )
 from core.services.folders_operations import create_folder_for_user, get_available_folders
-from core.services.helpers import increment_token_version, get_user_by_uuid, get_folder_by_uuid, get_user_folder_permissions, get_files_in_folder
+from core.services.helpers import increment_token_version, get_user_by_uuid, get_folder_by_uuid, get_user_folder_permissions, get_files_in_folder, get_user, modify_permissions
 from django.views.decorators.csrf import csrf_exempt
 import uuid
 from django.core.exceptions import ValidationError
@@ -223,5 +223,46 @@ def get_files(request: HttpRequest, folder_id: str):
         return JsonResponse({"message": "no files"})
 
     return JsonResponse({"items": page.object_list, "page": page.number, "totalPages": paginator.num_pages})
-    
 
+
+@require_POST
+def modify_user_permissions(request: HttpRequest, folder_id: str) -> JsonResponse:
+    """
+    POST /folder/<uuid>/permissions
+    Cookie: access-token
+
+    {"read": true, "write": false, "delete": true}
+    """
+    # 1. Check user's JWT token
+    token = request.COOKIES.get("access_token")
+    if not token or not validate_jwt(token):
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    # 2. Check if folder exists
+    folder = get_folder_by_uuid(folder_id)
+    user = get_user_by_uuid(decode_user_uuid(token))
+    if not folder or not user:
+        # return 403 to prevent resource enumeration
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    # 3. Check user's owner permissions for the folder
+    if user is not folder.owner:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    # 4. Get the user
+    data = json.loads(request.body)
+    try:
+        username = data["username"]
+        perms = data["perms"]
+    except KeyError:
+        return JsonResponse({"error": "missing field(s)"}, status=400)
+
+    # 5. Modify the permissions
+    if ["read", "upload", "delete"] in perms.keys():
+        user_to_modify = get_user(username)
+        if not user_to_modify:
+            return JsonResponse({"error": "user not found"}, status=404)
+
+        modify_permissions(folder, user_to_modify, perms)
+        return JsonResponse({"message": "success"})
+    return JsonResponse({"error": "read, upload and delete permissions required"}, status=400)
