@@ -42,6 +42,8 @@ def upload_file(request):
         return JsonResponse({"error": "No file uploaded"}, status=400)
     if file.size > getattr(settings, "MAX_UPLOAD_SIZE", 50 * 1024 * 1024):
         return JsonResponse({"error": "File too large"}, status=400)
+    if file.content_type not in settings.ALLOWED_MIME_TYPES:
+        return JsonResponse({"error": f"Invalid file type: {file.content_type}"}, status=400)
 
     # 3. Check if user has dir access
     folder = get_folder_by_uuid(dir)
