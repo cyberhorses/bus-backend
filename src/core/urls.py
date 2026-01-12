@@ -13,5 +13,5 @@ urlpatterns = [
     path("file/upload", blob_views.upload_file),
     path("file/uploaded/<uuid:file_id>", blob_views.get_delete_file),
     path("folders/<uuid:folder_id>/files", views.get_files),
-    path("folders/<uuid:folder_id>/permissions", views.modify_user_permissions)
+    path("folders/<uuid:folder_id>/permissions", views.permissions)
 ]
