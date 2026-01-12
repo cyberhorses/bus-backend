@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import blob_views
 
 urlpatterns = [
     path("", views.health_check),
@@ -9,4 +10,5 @@ urlpatterns = [
     path("session/manage/logout", views.logout),
     path("session/manage/refresh", views.refresh_session),
     path("session/validate", views.validate_session),
+    path("file/upload", blob_views.upload_file)
 ]
