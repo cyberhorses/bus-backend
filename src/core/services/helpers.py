@@ -40,7 +40,7 @@ def get_file_by_uuid(id: str) -> Optional[File]:
 
 def get_files_in_folder(folder: Folder) -> list:
     files = (File.objects.filter(folder=folder).order_by("name"))
-    files_list = [{ "id": str(file.id), "name": str(file.name), } for file in files]
+    files_list = [{ "id": str(file.id), "name": str(file.name), "size": str(file.size) } for file in files]
     return files_list
 
 def modify_permissions(folder: Folder, user: User, perms_new: dict):
