@@ -10,5 +10,6 @@ urlpatterns = [
     path("session/manage/logout", views.logout),
     path("session/manage/refresh", views.refresh_session),
     path("session/validate", views.validate_session),
-    path("file/upload", blob_views.upload_file)
+    path("file/upload", blob_views.upload_file),
+    path("file/download", blob_views.download_file)
 ]
