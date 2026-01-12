@@ -77,11 +77,7 @@ def get_delete_file(request: HttpRequest, file_id: str):
     if not token or not validate_jwt(token):
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
-    # 2. Get file details
-    data = json.loads(request.body)
-    file_id = data["file_id"]
-
-    # 3. Get file and user
+    # 2. Get file and user
     file = get_file_by_uuid(file_id)
     user = get_user_by_uuid(decode_user_uuid(token))
     if not file or not user:
@@ -89,7 +85,7 @@ def get_delete_file(request: HttpRequest, file_id: str):
 
     perm, func = ("read", download_file) if request.method == "GET" else ("delete", delete_file)
 
-    # 4. Check user's permissions
+    # 3. Check user's permissions
     if perm not in get_user_folder_permissions(file.folder, user):
         return JsonResponse({"error": "Forbidden"}, status=403)
 
@@ -99,7 +95,7 @@ def get_delete_file(request: HttpRequest, file_id: str):
     if not blob_client.exists():
         return JsonResponse({"error": "file not found"}, status=500)
 
-    # 5. Perform the operation
+    # 4. Perform the operation
     return func(blob_client=blob_client, filename=filename, file=file)
 
 
