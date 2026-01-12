@@ -241,7 +241,7 @@ def permissions(request: HttpRequest, folder_id: str) -> JsonResponse:
         return JsonResponse({"error": "Forbidden"}, status=403)
 
     operation = get_user_permissions if request.method == "GET" else modify_user_permissions
-    operation(request=request, folder=folder, user=user)
+    return operation(request=request, folder=folder, user=user)
 
 
 def get_user_permissions(**kwargs) -> JsonResponse:
