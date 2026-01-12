@@ -46,12 +46,12 @@ def upload_file(request):
         return JsonResponse({"error": "Forbidden"}, status=403)
     
 
-    file = File.objects.create(
+    file_db = File.objects.create(
             name=file.name,
             folder=folder,
             size = file.size
         )
-    blob_name = f"{file.id}_{file.name}"
+    blob_name = f"{file_db.id}_{file_db.name}"
 
     blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=blob_name)
     blob_client.upload_blob(file.file, overwrite=True, content_type=file.content_type)
