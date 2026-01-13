@@ -81,10 +81,20 @@ def login(request: HttpRequest):
     refresh_token = create_refresh_token(username)
     response = JsonResponse({"message": "success"})
 
-    response.set_cookie("access_token", jwt, httponly=True, samesite="Strict", secure=True)
     response.set_cookie(
-        "refresh_token", refresh_token, httponly=True, samesite="Strict", path="/api/session/manage/", secure=True
-    )
+            "access_token",
+            jwt,
+            httponly=True,
+            samesite="Strict",
+            secure=True)
+
+    response.set_cookie(
+            "refresh_token",
+            refresh_token,
+            httponly=True,
+            samesite="Strict",
+            path="/api/session/manage/",
+            secure=True)
 
     return response
 
