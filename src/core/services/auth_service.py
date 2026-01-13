@@ -5,10 +5,7 @@ from django.contrib.auth.hashers import make_password
 import uuid
 from typing import Optional
 
-def verify_user_credentials(username: str, password: str):
-    """
-    Returns the user object if credentials are correct, else None.
-    """
+def verify_user_credentials(username: str, password: str) -> Optional[User]:
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -20,10 +17,6 @@ def verify_user_credentials(username: str, password: str):
 
 
 def create_user(username: str, password: str) -> Optional[User]:
-    """
-    Creates a new user with hashed password.
-    Returns the User object on success, None if username exists.
-    """
     try:
         user = User(
             id=uuid.uuid4(),
@@ -33,5 +26,4 @@ def create_user(username: str, password: str) -> Optional[User]:
         user.save()
         return user
     except IntegrityError:
-        # Username already exists
         return None

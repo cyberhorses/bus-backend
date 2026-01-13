@@ -58,7 +58,7 @@ def logout(request: HttpRequest) -> JsonResponse:
     return JsonResponse({"error": "Invalid session"}, status=403)
 
 
-@csrf_exempt  # TODO
+@csrf_exempt
 @require_POST
 def login(request: HttpRequest):
     """
@@ -81,10 +81,9 @@ def login(request: HttpRequest):
     refresh_token = create_refresh_token(username)
     response = JsonResponse({"message": "success"})
 
-    # TODO secure=True
-    response.set_cookie("access_token", jwt, httponly=True, samesite="Lax", secure=True)
+    response.set_cookie("access_token", jwt, httponly=True, samesite="Strict", secure=True)
     response.set_cookie(
-        "refresh_token", refresh_token, httponly=True, samesite="Lax", path="/api/session/manage/", secure=True
+        "refresh_token", refresh_token, httponly=True, samesite="Strict", path="/api/session/manage/", secure=True
     )
 
     return response
