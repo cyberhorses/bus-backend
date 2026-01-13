@@ -21,10 +21,14 @@ def create_folder_for_user(name: str, owner_id: str) -> Folder:
 
 def get_available_folders(user_id: str):
     permissions = (
-        FolderPermission.objects.filter(user_id=user_id, can_read=True)
-        | FolderPermission.objects.filter(user_id=user_id, can_upload=True)
-        | FolderPermission.objects.filter(user_id=user_id, can_delete=True)
-    ).select_related("folder__owner")
+        (
+            FolderPermission.objects.filter(user_id=user_id, can_read=True)
+            | FolderPermission.objects.filter(user_id=user_id, can_upload=True)
+            | FolderPermission.objects.filter(user_id=user_id, can_delete=True)
+        )
+        .select_related("folder__owner")
+        .order_by("folder__name")
+    )
 
     folders = [
         {
