@@ -21,8 +21,10 @@ def create_folder_for_user(name: str, owner_id: str) -> Folder:
 
 def get_available_folders(user_id: str):
     permissions = (
-        FolderPermission.objects.filter(user_id=user_id).select_related("folder__owner").order_by("folder__name")
-    )
+        FolderPermission.objects.filter(user_id=user_id, read=True)
+        | FolderPermission.objects.filter(user_id=user_id, upload=True)
+        | FolderPermission.objects.filter(user_id=user_id, delete=True)
+    ).select_related("folder__owner")
 
     folders = [
         {
